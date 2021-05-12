@@ -21,10 +21,13 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   vision_msgs
   cv_bridge
+  image_geometry
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -115,7 +118,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
  LIBRARIES jetson_mot_tracker
- CATKIN_DEPENDS roscpp sensor_msgs tf2_ros vision_msgs cv_bridge
+ CATKIN_DEPENDS roscpp sensor_msgs tf2_ros vision_msgs cv_bridge image_geometry
  DEPENDS system_lib
 )
 
@@ -161,6 +164,8 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${OpenCV_LIBS}
 )
 
 target_link_libraries(${PROJECT_NAME}_node

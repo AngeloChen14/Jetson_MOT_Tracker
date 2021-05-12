@@ -7,6 +7,8 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
 #include <cv_bridge/cv_bridge.h>
+#include <image_geometry/pinhole_camera_model.h>
+#include <opencv2/imgproc.hpp>
 
 #include <sensor_msgs/LaserScan.h>
 #include <nav_msgs/Path.h>
@@ -60,7 +62,7 @@ class MotTracker
    * Calculate 3D poition of detections based on 2D detection bounding box and anligned depth image
    * @param message the received message.
    */
-  void positionCalculator(const vision_msgs::Detection2DArray& detects,vision_msgs::Detection2DArray& detects_out,const sensor_msgs::Image& depthimage, const sensor_msgs::CameraInfo& caminfo);
+  void positionCalculator(const vision_msgs::Detection2DArray& detects,vision_msgs::Detection2DArray& detects_out,const sensor_msgs::Image& depthimage, image_geometry::PinholeCameraModel& cam_model);
 
   /*!
    * ROS service server callback.
@@ -86,7 +88,7 @@ class MotTracker
   std::string caminfoSubTopic_;
   
   sensor_msgs::Image depth_image_;
-  sensor_msgs::CameraInfo rgb_cam_info_;
+  image_geometry::PinholeCameraModel cam_model_;
 
   //! ROS service server.
   tf2_ros::Buffer tfBuffer_;

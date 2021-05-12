@@ -41,12 +41,7 @@ bool MotTracker::readParameters()
 void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
 {
   vision_msgs::Detection2DArray msg_updated;
-  positionCalculator(msg_raw, msg_updated,depth_image_,rgb_cam_info_); //Update detections with 3D positions
-  
-  // body_msgs_ = message;
-  // std_msgs::Float64 msg;
-  // msg.data = calculateAngle(body_msgs_, laser_msgs_);
-  // angle_pub_.publish(msg);
+  positionCalculator(msg_raw, msg_updated,depth_image_,cam_model_); //Update detections with 3D positions
 }
 
 void MotTracker::depthCallback(const sensor_msgs::Image& message)
@@ -56,33 +51,53 @@ void MotTracker::depthCallback(const sensor_msgs::Image& message)
 
 void MotTracker::caminfoCallback(const sensor_msgs::CameraInfo& message)
 {
-  rgb_cam_info_ = message;
+  cam_model_.fromCameraInfo(message);
+  // ROS_INFO_STREAM("camera initial successfully!");
+  // rgb_cam_info_ = message;
 }
 
 
 void MotTracker::positionCalculator(const vision_msgs::Detection2DArray& detects,vision_msgs::Detection2DArray& detects_out,\
-                                                     const sensor_msgs::Image& depthimage, const sensor_msgs::CameraInfo& caminfo)
+                                                     const sensor_msgs::Image& depthimage, image_geometry::PinholeCameraModel& cam_model)
 {
-  detects_out = detects;
-  cv_bridge::CvImagePtr cv_ptr;
-  try
+  if(cam_model.initialized() && !depthimage.encoding.empty())
   {
-    cv_ptr = cv_bridge::toCvCopy(depthimage,depthimage.encoding);
+     detects_out = detects;
+     cv_bridge::CvImagePtr cv_ptr;
+    try
+    {
+      cv_ptr = cv_bridge::toCvCopy(depthimage,depthimage.encoding);
+    }
+    catch (cv_bridge::Exception& e)
+    {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+    }
+    cv_bridge::CvImage cv_img_blur;
+    cv::medianBlur(cv_ptr->image,cv_img_blur.image,3);
+    cv::Point2d uv;
+    cv::Point3d pt_cv;
+    for(auto detect:detects_out.detections)
+    {
+      assert(detect.results.size()==1);
+      int x = detect.bbox.center.x;
+      int y = detect.bbox.center.y;
+      float depth = cv_img_blur.image.at<float>(y,x);
+      uv.x=x;uv.y=y;
+      pt_cv = cam_model.projectPixelTo3dRay(uv);
+      detect.results.back().pose.pose.position.x = pt_cv.x*depth;
+      detect.results.back().pose.pose.position.y = pt_cv.y*depth;
+      detect.results.back().pose.pose.position.z = depth;
+      detect.header.frame_id = depthimage.header.frame_id;
+      detect.header.stamp = detects.header.stamp;
+      // ROS_INFO_STREAM("Target Position at "<<x<<','<<y<<"is:"<<detect.results.back().pose.pose.position);
+    }
   }
-  catch (cv_bridge::Exception& e)
+  else
   {
-    ROS_ERROR("cv_bridge exception: %s", e.what());
+    ROS_ERROR("Camera Model Not Initialized!");
   }
 
-  for(auto detect:detects.detections)
-  {
-    int x = detect.bbox.center.x;
-    int y = detect.bbox.center.y;
-    float depth = cv_ptr->image.at<float>(y,x);
-    ROS_INFO_STREAM("Target depth at "<<x<<','<<" is:"<<depth);
-  }
   
-  // return detections;
 }
 
 } /* namespace */
