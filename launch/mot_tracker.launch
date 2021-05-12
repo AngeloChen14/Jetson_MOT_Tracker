@@ -1,0 +1,8 @@
+<launch>
+
+  <!-- Launch ROS Package Template Node -->
+  <node pkg="jetson_mot_tracker" type="jetson_mot_tracker_node" name="jetson_mot_tracker" output="screen">
+    <rosparam command="load" file="$(dirname)/../config/config.yaml" />
+  </node>
+
+</launch>

@@ -1,0 +1,3 @@
+detect_subscriber_topic: /detection
+depthimage_subscriber_topic: /k4a/depth_to_rgb/image_rect
+caminfo_subscriber_topic: /k4a/rgb/camera_info
