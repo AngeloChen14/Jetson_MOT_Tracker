@@ -27,7 +27,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(OpenCV REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -116,7 +117,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
- INCLUDE_DIRS include
+ INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}
  LIBRARIES jetson_mot_tracker
  CATKIN_DEPENDS roscpp sensor_msgs tf2_ros vision_msgs cv_bridge image_geometry
  DEPENDS system_lib
@@ -131,12 +132,17 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   # src/${PROJECT_NAME}/jetson_mot_tracker.cpp
   src/jetson_mot_tracker.cpp
+  src/kalman_filter.cpp
+  src/track.cpp
 )
 
 ## Add cmake target dependencies of the library

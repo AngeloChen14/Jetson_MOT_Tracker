@@ -9,6 +9,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <image_geometry/pinhole_camera_model.h>
 #include <opencv2/imgproc.hpp>
+#include "jetson_mot_tracker/track.h" 
 
 #include <sensor_msgs/LaserScan.h>
 #include <nav_msgs/Path.h>
@@ -61,8 +62,9 @@ class MotTracker
   /*!
    * Calculate 3D poition of detections based on 2D detection bounding box and anligned depth image
    * @param message the received message.
+   * @return true if valid human detection exists, false otherwise.
    */
-  void positionCalculator(const vision_msgs::Detection2DArray& detects,vision_msgs::Detection2DArray& detects_out,const sensor_msgs::Image& depthimage, image_geometry::PinholeCameraModel& cam_model);
+  bool positionCalculator(const vision_msgs::Detection2DArray& detects,vision_msgs::Detection2DArray& detects_out,const sensor_msgs::Image& depthimage, image_geometry::PinholeCameraModel& cam_model);
 
   /*!
    * ROS service server callback.
@@ -94,5 +96,6 @@ class MotTracker
   tf2_ros::Buffer tfBuffer_;
   tf2_ros::TransformListener tfListener_;
   
+  Track tracker_;
 };
 } /* namespace */
