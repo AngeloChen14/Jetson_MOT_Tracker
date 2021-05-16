@@ -37,7 +37,9 @@ void KalmanFilter::Coast() {
 }
 
 
-void KalmanFilter::Predict() {
+void KalmanFilter::Predict(double duration) {
+    F_(0,3) = duration;
+    F_(1,4) = duration;
     Coast();
     x_ = x_predict_;
     P_ = P_predict_;

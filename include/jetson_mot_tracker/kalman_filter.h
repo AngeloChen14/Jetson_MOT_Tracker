@@ -28,7 +28,7 @@ public:
     /**
      * Predict without measurement update
      */
-    void Predict();
+    void Predict(double duration);
 
     /**
      * This function maps the true state space into the observed space

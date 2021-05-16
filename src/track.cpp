@@ -1,44 +1,49 @@
 #include "jetson_mot_tracker/track.h" 
 
 
-Track::Track() : kf_(4, 2) {
+Track::Track() : kf_(5, 3) {
 
     /*** Define constant velocity model ***/
-    // state - center_x, center_y, v_cx, v_cy
+    // state - center_x, center_y, center_z, v_cx, v_cy
     kf_.F_ <<
-            1, 0, 1, 0, 
-            0, 1, 0, 1, 
-            0, 0, 1, 0, 
-            0, 0, 0, 1;
+            1, 0, 0, 1, 0,
+            0, 1, 0, 0, 1,
+            0, 0, 1, 0, 0,
+            0, 0, 0, 1, 0,
+            0, 0, 0, 0, 1;
 
     // // Give high uncertainty to the unobservable initial velocities
     kf_.P_ <<
-           10,  0,     0, 0, 
-            0, 10,     0, 0, 
-            0,  0, 10000, 0,
-            0,  0, 0, 10000;
+           10,  0,  0,     0, 0, 
+            0, 10,  0,     0, 0, 
+            0,  0, 10,     0, 0, 
+            0,  0,  0, 10000, 0,
+            0,  0,  0, 0, 10000;
 
 
     kf_.H_ <<
-            1, 0, 0, 0, 
-            0, 1, 0, 0;
+            1, 0, 0, 0, 0, 
+            0, 1, 0, 0, 0,
+            0, 0, 1, 0, 0;
 
     kf_.Q_ <<
-            1, 0,    0, 0, 
-            0, 1,    0, 0,
-            0, 0, 0.01, 0, 
-            0, 0, 0, 0.01;
+            10, 0,  0, 0, 0,
+            0, 10,  0, 0, 0,
+            0,  0, 10, 0, 0,
+            0,  0,  0, 1, 0,
+            0,  0,  0, 0, 1;
 
     kf_.R_ <<
-            1, 0,
-            0, 1;
+            0.1, 0,   0,
+            0, 0.1,   0,
+            0,   0, 0.1;
 }
 
 
 // Get predicted locations from existing trackers
 // dt is time elapsed between the current and previous measurements
-void Track::Predict() {
-    kf_.Predict();
+void Track::Predict(double duration) {
+    kf_.Predict(duration);
 
     // hit streak count will be reset
     if (coast_cycles_ > 0) {
@@ -67,7 +72,7 @@ void Track::Update(const geometry_msgs::Point& point) {
 
 // Create and initialize new trackers for unmatched detections, with initial bounding box
 void Track::Init(const geometry_msgs::Point& point) {
-    kf_.x_.head(2) << ConvertPointToObservation(point);
+    kf_.x_.head(3) << ConvertPointToObservation(point);
     hit_streak_++;
 }
 
@@ -95,10 +100,11 @@ float Track::GetNIS() const {
  * @return
  */
 Eigen::VectorXd Track::ConvertPointToObservation(const geometry_msgs::Point& point) const{
-    Eigen::VectorXd observation = Eigen::VectorXd::Zero(2);
+    Eigen::VectorXd observation = Eigen::VectorXd::Zero(3);
     float center_x = point.x;
     float center_y = point.y;
-    observation << center_x, center_y;
+    float center_z = point.z;
+    observation << center_x, center_y,center_z;
     return observation;
 }
 
@@ -114,7 +120,7 @@ geometry_msgs::Point Track::ConvertStateToPoint(const Eigen::VectorXd &state) co
     // state - center_x, center_y, v_cx, v_cy, 
     geometry_msgs::Point point;
     point.x = static_cast<double>(state[0]);
-    point.y = static_cast<double>(state[0]);
-    point.z = 0;
+    point.y = static_cast<double>(state[1]);
+    point.z = static_cast<double>(state[2]);
     return point;
 }

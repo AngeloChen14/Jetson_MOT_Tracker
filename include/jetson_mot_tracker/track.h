@@ -1,6 +1,5 @@
 #pragma once
 
-#include <opencv2/core.hpp>
 #include "kalman_filter.h"
 #include <geometry_msgs/PointStamped.h>
 class Track {
@@ -12,7 +11,7 @@ public:
     ~Track() = default;
 
     void Init(const geometry_msgs::Point& point);
-    void Predict();
+    void Predict(double duration);
     void Update(const geometry_msgs::Point& point);
     geometry_msgs::Point GetStateAsPoint() const;
     float GetNIS() const;

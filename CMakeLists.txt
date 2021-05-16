@@ -22,6 +22,9 @@ find_package(catkin REQUIRED COMPONENTS
   vision_msgs
   cv_bridge
   image_geometry
+  message_filters
+  tf2_geometry_msgs
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -119,7 +122,7 @@ find_package(Boost REQUIRED)
 catkin_package(
  INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}
  LIBRARIES jetson_mot_tracker
- CATKIN_DEPENDS roscpp sensor_msgs tf2_ros vision_msgs cv_bridge image_geometry
+ CATKIN_DEPENDS roscpp sensor_msgs tf2_ros vision_msgs cv_bridge image_geometry message_filters tf2_geometry_msgs visualization_msgs
  DEPENDS system_lib
 )
 
@@ -143,6 +146,8 @@ add_library(${PROJECT_NAME}
   src/jetson_mot_tracker.cpp
   src/kalman_filter.cpp
   src/track.cpp
+  src/tracker.cpp
+  src/munkres.cpp
 )
 
 ## Add cmake target dependencies of the library
