@@ -4,7 +4,7 @@
 
 namespace jetson_mot_tracker {
 MotTracker::MotTracker(ros::NodeHandle& nodeHandle)
- : nodeHandle_(nodeHandle), tf2_(buffer_)//,tf2_filter_(detect_sub_, buffer_, "camera_base", 10, 0)
+ : nodeHandle_(nodeHandle), imageTransport_(nodeHandle), tf2_(buffer_) //,tf2_filter_(detect_sub_, buffer_, "camera_base", 10, 0)
 {
   if (!readParameters()) {
     ROS_ERROR("Could not read parameters.");
@@ -16,7 +16,7 @@ MotTracker::MotTracker(ros::NodeHandle& nodeHandle)
   // tf2_filter_.registerCallback(&MotTracker::detectCallback,this);
   detect_sub_ = nodeHandle_.subscribe(detectSubTopic_, 10,
                                       &MotTracker::detectCallback, this);
-  depth_sub_  = nodeHandle_.subscribe(depthSubTopic_, 10,
+  depth_sub_  = imageTransport_.subscribe(depthSubTopic_, 10,
                                       &MotTracker::depthCallback, this);
   caminfo_sub_ = nodeHandle_.subscribe(caminfoSubTopic_, 5,
                                       &MotTracker::caminfoCallback, this);
@@ -47,6 +47,7 @@ void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
   vision_msgs::Detection2DArray msg_updated;
   std::vector<geometry_msgs::Point> detects;
   double duration = (msg_raw.header.stamp - lastUpdateTime_).toSec();
+  // ROS_INFO_STREAM("Update time is: "<<duration);
   lastUpdateTime_ = msg_raw.header.stamp;
 
   positionCalculator(msg_raw, msg_updated,depth_image_,cam_model_); //Update detections with 3D positions
@@ -57,10 +58,10 @@ void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
   // ROS_INFO_STREAM(detect_flag);
 }
 
-void MotTracker::depthCallback(const sensor_msgs::Image& message)
+void MotTracker::depthCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   // ROS_INFO_STREAM("depthCallback entered");
-  depth_image_ = message;
+  depth_image_ = *msg;
 }
 
 void MotTracker::caminfoCallback(const sensor_msgs::CameraInfo& message)
@@ -105,8 +106,8 @@ bool MotTracker::positionCalculator(const vision_msgs::Detection2DArray& detects
         detect.results.back().pose.pose.position.x = pt_cv.x*depth;
         detect.results.back().pose.pose.position.y = pt_cv.y*depth;
         detect.results.back().pose.pose.position.z = depth;
-        // detect.header.frame_id = depthimage.header.frame_id;
-        // detect.header.stamp = detects.header.stamp;
+        detect.header.frame_id = depthimage.header.frame_id;
+        detect.header.stamp = detects.header.stamp;
         detect_flag = true;
         // ROS_INFO_STREAM("Target Position at "<<x<<','<<y<<"is: "<<detect);
       }

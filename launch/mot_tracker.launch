@@ -7,6 +7,6 @@
     <rosparam command="load" file="$(dirname)/../config/config.yaml" />
   </node>
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jetson_mot_tracker)/rviz/view.rviz" output="screen"/>
+  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jetson_mot_tracker)/rviz/view.rviz" output="screen"/> -->
 
 </launch>

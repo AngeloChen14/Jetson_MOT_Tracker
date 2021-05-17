@@ -4,19 +4,18 @@
 // ROS
 #include <ros/ros.h>
 
+#include <cv_bridge/cv_bridge.h>
+#include <image_geometry/pinhole_camera_model.h>
+#include <tf2_ros/transform_listener.h>
 #include <vision_msgs/Detection2DArray.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
-#include <cv_bridge/cv_bridge.h>
-#include <image_geometry/pinhole_camera_model.h>
-#include <opencv2/imgproc.hpp>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/message_filter.h>
-#include <message_filters/subscriber.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <geometry_msgs/PointStamped.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <image_transport/image_transport.h>
 
+#include <opencv2/imgproc.hpp>
 
 
 #include <geometry_msgs/TransformStamped.h>
@@ -57,7 +56,7 @@ class MotTracker
    * @param message the received message.
    */
   void detectCallback(const vision_msgs::Detection2DArray& message);
-  void depthCallback(const sensor_msgs::Image& message);
+  void depthCallback(const sensor_msgs::ImageConstPtr& msg);
   void caminfoCallback(const sensor_msgs::CameraInfo& message);
 
   /*!
@@ -87,8 +86,10 @@ class MotTracker
 
   //! ROS topic subscriber.
   ros::Subscriber detect_sub_;
-  ros::Subscriber depth_sub_;
+  // ros::Subscriber depth_sub_;
   ros::Subscriber caminfo_sub_;
+  image_transport::ImageTransport imageTransport_;
+  image_transport::Subscriber depth_sub_;
 
   ros::Publisher body_marker_publisher_;
 
