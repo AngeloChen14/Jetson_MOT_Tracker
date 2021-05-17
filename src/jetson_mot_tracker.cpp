@@ -131,6 +131,8 @@ std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_m
   float kMinDistance = 0.2; //minimal distance between detections to avoid repeation
   std::vector<geometry_msgs::Point> dets;
   geometry_msgs::PointStamped point_in,point_out;
+  geometry_msgs::TransformStamped transformStamped;
+  transformStamped = buffer_.lookupTransform(detectGlobalFrame_, detArray.header.frame_id, ros::Time(0),ros::Duration(0.1));
   for(auto& det:detArray.detections)
   {
     bool minDistanceFlag = true;
@@ -140,7 +142,8 @@ std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_m
       point_in.point = det.results.back().pose.pose.position;
       try 
       {
-        buffer_.transform(point_in, point_out, detectGlobalFrame_);
+        tf2::doTransform(point_in,point_out,transformStamped);
+        // buffer_.transform(point_in, point_out, detectGlobalFrame_);
         // ROS_INFO("point of detect in global frame of  Position(x:%f y:%f z:%f)\n", 
         //       point_out.point.x,
         //       point_out.point.y,
@@ -191,9 +194,9 @@ void MotTracker::bodyMarkerPublish(Tracker& trackers)
       marker.color.g = color.g;
       marker.color.b = color.b;
 
-      marker.scale.x = 0.15;
-      marker.scale.y = 0.15;
-      marker.scale.z = 0.15;
+      marker.scale.x = 0.25;
+      marker.scale.y = 0.25;
+      marker.scale.z = 0.25;
 
       marker.pose.position = track.second.GetStateAsPoint();
       marker.pose.orientation.w = 1.0f;

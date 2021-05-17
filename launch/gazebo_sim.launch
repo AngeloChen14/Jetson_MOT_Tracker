@@ -1,0 +1,16 @@
+<launch>
+
+  <!-- <include file="$(find azure_sensor_angle)/launch/azure_simulation.launch" /> -->
+  <include file="$(find darknet_ros)/launch/darknet_ros_yolov3tiny.launch" >
+    <arg name="image" value="/camera/rgb/image_raw"/>
+  </include>
+  <!-- Launch ROS Package Template Node -->
+  <node pkg="jetson_mot_tracker" type="jetson_mot_tracker_node" name="jetson_mot_tracker" output="screen">
+    <rosparam command="load" file="$(dirname)/../config/gazebo.yaml" />
+    <param name="detect_global_frame" type="str" value="base_link" />
+    <param name="caminfo_subscriber_topic" type="str" value="/camera/rgb/camera_info" />
+  </node>
+
+  <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jetson_mot_tracker)/rviz/view.rviz" output="screen"/> -->
+
+</launch>
