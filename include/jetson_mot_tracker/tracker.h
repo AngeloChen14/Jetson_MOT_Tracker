@@ -7,7 +7,7 @@
 #include "munkres.h"
 // #include "utils.h"
 
-constexpr int kMaxCoastCycles = 3;
+constexpr int kMaxCoastCycles = 10;
 constexpr int kMinHits = 3;
 constexpr float kMinConfidence = 0.6;
 

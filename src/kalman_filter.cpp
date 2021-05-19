@@ -1,5 +1,5 @@
 #include "jetson_mot_tracker/kalman_filter.h"
-
+#include "iostream"
 KalmanFilter::KalmanFilter(unsigned int num_states, unsigned int num_obs) :
         num_states_(num_states), num_obs_(num_obs) {
     /*** Predict ***/
@@ -67,21 +67,21 @@ void KalmanFilter::Update(const Eigen::VectorXd& z) {
 //    std::cout << std::endl;
 //    std::cout << "P_predict = " << std::endl;
 //    std::cout << P_predict_ << std::endl;
-//
-//
+
+
 //    std::cout << "Z = " << std::endl;
 //    std::cout << z << std::endl;
-//
+
 //    std::cout << "Z_pred = " << std::endl;
 //    std::cout << z_predict << std::endl;
-//
+
 //    std::cout << "y = " << std::endl;
 //    std::cout << y << std::endl;
-//
+
 //    std::cout << "S = " << std::endl;
 //    std::cout << S << std::endl;
-//
-//    std::cout << "NIS = " << NIS_ << std::endl;
+
+   std::cout << "NIS = " << NIS_ << std::endl;
 
 
     // K - Kalman gain

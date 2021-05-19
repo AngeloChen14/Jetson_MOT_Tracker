@@ -12,6 +12,7 @@
 #include <sensor_msgs/Image.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <geometry_msgs/PointStamped.h>
+#include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <image_transport/image_transport.h>
 
@@ -92,6 +93,7 @@ class MotTracker
   image_transport::Subscriber depth_sub_;
 
   ros::Publisher body_marker_publisher_;
+  ros::Publisher detection_publisher_;
 
   ros::Timer timer1_;
 

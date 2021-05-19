@@ -1,4 +1,4 @@
 detect_subscriber_topic: /detection
 depthimage_subscriber_topic: /camera/depth/image_raw
 caminfo_subscriber_topic: /camera/rgb/camera_info
-detect_global_frame: base_link
+detect_global_frame: odom

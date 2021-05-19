@@ -21,6 +21,7 @@ MotTracker::MotTracker(ros::NodeHandle& nodeHandle)
   caminfo_sub_ = nodeHandle_.subscribe(caminfoSubTopic_, 5,
                                       &MotTracker::caminfoCallback, this);
   body_marker_publisher_ = nodeHandle_.advertise<visualization_msgs::MarkerArray>("body_tracking_data", 10);
+  detection_publisher_ = nodeHandle_.advertise<geometry_msgs::PoseArray>("detection",10);
   // angle_pub_ = nodeHandle_.advertise<std_msgs::Float64>("/camera_angle", 100, true);
   // timer1_ = nodeHandle_.createTimer(ros::Duration(0.1),&MotTracker::timer1Callback,this);  
 
@@ -47,7 +48,7 @@ void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
   vision_msgs::Detection2DArray msg_updated;
   std::vector<geometry_msgs::Point> detects;
   double duration = (msg_raw.header.stamp - lastUpdateTime_).toSec();
-  // ROS_INFO_STREAM("Update time is: "<<duration);
+  // ROS_INFO_STREAM("Update duration is: "<<duration);
   lastUpdateTime_ = msg_raw.header.stamp;
 
   positionCalculator(msg_raw, msg_updated,depth_image_,cam_model_); //Update detections with 3D positions
@@ -132,6 +133,8 @@ std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_m
   std::vector<geometry_msgs::Point> dets;
   geometry_msgs::PointStamped point_in,point_out;
   geometry_msgs::TransformStamped transformStamped;
+  geometry_msgs::PoseArray detection_msg;
+  geometry_msgs::Pose    pos_msg;
   transformStamped = buffer_.lookupTransform(detectGlobalFrame_, detArray.header.frame_id, ros::Time(0),ros::Duration(0.1));
   for(auto& det:detArray.detections)
   {
@@ -143,8 +146,9 @@ std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_m
       try 
       {
         tf2::doTransform(point_in,point_out,transformStamped);
-        // buffer_.transform(point_in, point_out, detectGlobalFrame_);
-        // ROS_INFO("point of detect in global frame of  Position(x:%f y:%f z:%f)\n", 
+        // buffer_.transform(point_in, point_out, detectGlobalFrame_,ros::Duration(0.1));
+        // ROS_INFO_STREAM("Before:"<<point_in<<"\nAfter:"<<point_out<<"\nTransform:"<<transformStamped);
+        // ROS_INFO("point of detect in global frame of odom is: (x:%f y:%f z:%f)\n", 
         //       point_out.point.x,
         //       point_out.point.y,
         //       point_out.point.z);
@@ -165,9 +169,17 @@ std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_m
         }
       }
       if(minDistanceFlag)
+      { 
         dets.push_back(point_out.point);
+        pos_msg.position = point_out.point;
+        detection_msg.poses.push_back(pos_msg);
+      }
     }
-
+  }
+  if(detection_msg.poses.size()>0)
+  {
+    detection_msg.header = point_out.header;
+    detection_publisher_.publish(detection_msg);
   }
   return dets;
 }
@@ -200,6 +212,7 @@ void MotTracker::bodyMarkerPublish(Tracker& trackers)
 
       marker.pose.position = track.second.GetStateAsPoint();
       marker.pose.orientation.w = 1.0f;
+      marker.points.push_back(track.second.GetVelAsPoint());
       markerArray.markers.push_back(marker);
     }
   }

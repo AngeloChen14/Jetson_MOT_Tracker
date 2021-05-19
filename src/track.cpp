@@ -17,8 +17,8 @@ Track::Track() : kf_(5, 3) {
            10,  0,  0,     0, 0, 
             0, 10,  0,     0, 0, 
             0,  0, 10,     0, 0, 
-            0,  0,  0, 10000, 0,
-            0,  0,  0, 0, 10000;
+            0,  0,  0,  1000, 0,
+            0,  0,  0, 0,  1000;
 
 
     kf_.H_ <<
@@ -27,16 +27,16 @@ Track::Track() : kf_(5, 3) {
             0, 0, 1, 0, 0;
 
     kf_.Q_ <<
-            10, 0,  0, 0, 0,
-            0, 10,  0, 0, 0,
-            0,  0, 10, 0, 0,
+            0.1, 0,  0, 0, 0,
+            0, 0.1,  0, 0, 0,
+            0,  0, 0.1, 0, 0,
             0,  0,  0, 1, 0,
             0,  0,  0, 0, 1;
 
     kf_.R_ <<
-            0.1, 0,   0,
-            0, 0.1,   0,
-            0,   0, 0.1;
+            10, 0,   0,
+            0, 10,   0,
+            0,   0, 10;
 }
 
 
@@ -85,6 +85,10 @@ geometry_msgs::Point Track::GetStateAsPoint() const {
     return ConvertStateToPoint(kf_.x_);
 }
 
+geometry_msgs::Point Track::GetVelAsPoint() const {
+    return ConvertStateToPoint(kf_.x_);
+}
+
 
 float Track::GetNIS() const {
     return kf_.NIS_;
@@ -122,5 +126,13 @@ geometry_msgs::Point Track::ConvertStateToPoint(const Eigen::VectorXd &state) co
     point.x = static_cast<double>(state[0]);
     point.y = static_cast<double>(state[1]);
     point.z = static_cast<double>(state[2]);
+    return point;
+}
+
+geometry_msgs::Point Track::ConvertVelStateToPoint(const Eigen::VectorXd &state) const {
+    // state - center_x, center_y, v_cx, v_cy, 
+    geometry_msgs::Point point;
+    point.x = static_cast<double>(state[3]);
+    point.y = static_cast<double>(state[4]);
     return point;
 }
