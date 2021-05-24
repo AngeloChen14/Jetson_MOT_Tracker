@@ -72,8 +72,7 @@ void Tracker::HungarianMatching(const std::vector<std::vector<float>>& dis_matri
 void Tracker::AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Point>& detections,
                                             std::map<int, Track>& tracks,
                                             std::map<int, geometry_msgs::Point>& matched,
-                                            std::vector<geometry_msgs::Point>& unmatched_det,
-                                            float distance_threshold) {
+                                            std::vector<geometry_msgs::Point>& unmatched_det) {
 
     // Set all detection as unmatched if no tracks existing
     if (tracks.empty()) {
@@ -82,6 +81,7 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Poi
         }
         return;
     }
+
 
     std::vector<std::vector<float>> dis_matrix;
     // resize IOU matrix based on number of detection and tracks
@@ -110,7 +110,7 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Poi
         for (const auto& trk : tracks) {
             if (0 == association[i][j]) {
                 // Filter out matched with low IOU
-                if (dis_matrix[i][j] <= distance_threshold) {
+                if (dis_matrix[i][j] <= kDistanThreshold) {
                     matched[trk.first] = detections[i];
                     matched_flag = true;
                 }
@@ -126,23 +126,48 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Poi
     }
 }
 
-
-void Tracker::Run(const std::vector<geometry_msgs::Point>& detections, double duration) {
+void Tracker::Predict(double duration) {
 
     /*** Predict internal tracks from previous frame ***/
     for (auto &track : tracks_) {
         track.second.Predict(duration);
     }
+}
+
+
+void Tracker::Update(const std::vector<geometry_msgs::Point>& detections) {
+
+    /*** Predict internal tracks from previous frame ***/
+    // for (auto &track : tracks_) {
+    //     track.second.Predict(duration);
+    // }
 
     // Hash-map between track ID and associated detection bounding box
-    std::map<int, geometry_msgs::Point> matched;
+    std::map<int, geometry_msgs::Point> matched,matched1,matched2;
     // vector of unassociated detections
-    std::vector<geometry_msgs::Point> unmatched_det;
+    std::vector<geometry_msgs::Point> unmatched_det1,unmatched_det2;
+    
+    std::map<int, Track> tracks_confirmed;
+    std::map<int, Track> tracks_tentative;
+
+    for (auto &track : tracks_) {
+        if(track.second.state == 1){
+            tracks_confirmed.insert(track);
+        }
+        else{
+            tracks_tentative.insert(track);
+        }
+    }
 
     // return values - matched, unmatched_det
-    if (!detections.empty()) {
-        AssociateDetectionsToTrackers(detections, tracks_, matched, unmatched_det);
+    if (!detections.empty() ) {
+        AssociateDetectionsToTrackers(detections, tracks_confirmed, matched1, unmatched_det1);
+        if(!unmatched_det1.empty()){
+            AssociateDetectionsToTrackers(unmatched_det1, tracks_tentative, matched2, unmatched_det2);
+        }
     }
+    matched.insert(matched1.begin(),matched1.end());
+    matched.insert(matched2.begin(),matched2.end());
     // std::cout<<"Num of matches is: "<<matched.size();
     /*** Update tracks with associated bbox ***/
     for (const auto &match : matched) {
@@ -150,16 +175,26 @@ void Tracker::Run(const std::vector<geometry_msgs::Point>& detections, double du
         tracks_[ID].Update(match.second);
     }
 
+
     /*** Create new tracks for unmatched detections ***/
-    for (const auto &det : unmatched_det) {
+    for (const auto &det : unmatched_det2) {
         Track tracker;
         tracker.Init(det);
         // Create new track and generate new ID
         tracks_[id_++] = tracker;
     }
 
+    std::map<int, geometry_msgs::Point>::iterator map_it;
     /*** Delete lose tracked tracks ***/
     for (auto it = tracks_.begin(); it != tracks_.end();) {
+        map_it = matched.find(it->first);
+        if(map_it==matched.end()){
+            it->second.hit_streak_ = 0;
+            // printf("unmatched track found!");
+        }
+        if(it->second.hit_streak_>kMinHits){
+            it->second.state = 1;
+        }
         if (it->second.coast_cycles_ > kMaxCoastCycles) {
             it = tracks_.erase(it);
         } else {

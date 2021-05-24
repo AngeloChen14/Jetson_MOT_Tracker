@@ -2,6 +2,7 @@
 
 #include "kalman_filter.h"
 #include <geometry_msgs/PoseStamped.h>
+
 class Track {
 public:
     // Constructor
@@ -18,6 +19,7 @@ public:
     float GetNIS() const;
     
     int coast_cycles_ = 0, hit_streak_ = 0;
+    int state = 0; // 0 for tentative, 1 for confirmed
 
 private:
     Eigen::VectorXd ConvertPointToObservation(const geometry_msgs::Point& point) const;

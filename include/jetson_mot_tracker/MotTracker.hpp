@@ -59,6 +59,7 @@ class MotTracker
   void detectCallback(const vision_msgs::Detection2DArray& message);
   void depthCallback(const sensor_msgs::ImageConstPtr& msg);
   void caminfoCallback(const sensor_msgs::CameraInfo& message);
+  void timer1Callback(const ros::TimerEvent& e);
 
   /*!
    * Calculate 3D poition of detections based on 2D detection bounding box and anligned depth image

@@ -81,7 +81,7 @@ void KalmanFilter::Update(const Eigen::VectorXd& z) {
 //    std::cout << "S = " << std::endl;
 //    std::cout << S << std::endl;
 
-   std::cout << "NIS = " << NIS_ << std::endl;
+//    std::cout << "NIS = " << NIS_ << std::endl;
 
 
     // K - Kalman gain
