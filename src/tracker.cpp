@@ -126,13 +126,21 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Poi
     }
 }
 
-
-void Tracker::Run(const std::vector<geometry_msgs::Point>& detections, double duration) {
+void Tracker::Predict(double duration) {
 
     /*** Predict internal tracks from previous frame ***/
     for (auto &track : tracks_) {
         track.second.Predict(duration);
     }
+}
+
+
+void Tracker::Update(const std::vector<geometry_msgs::Point>& detections) {
+
+    /*** Predict internal tracks from previous frame ***/
+    // for (auto &track : tracks_) {
+    //     track.second.Predict(duration);
+    // }
 
     // Hash-map between track ID and associated detection bounding box
     std::map<int, geometry_msgs::Point> matched;
@@ -149,6 +157,8 @@ void Tracker::Run(const std::vector<geometry_msgs::Point>& detections, double du
         const auto &ID = match.first;
         tracks_[ID].Update(match.second);
     }
+    // matched.find
+
 
     /*** Create new tracks for unmatched detections ***/
     for (const auto &det : unmatched_det) {
@@ -158,8 +168,16 @@ void Tracker::Run(const std::vector<geometry_msgs::Point>& detections, double du
         tracks_[id_++] = tracker;
     }
 
+    std::map<int, geometry_msgs::Point>::iterator map_it;
     /*** Delete lose tracked tracks ***/
     for (auto it = tracks_.begin(); it != tracks_.end();) {
+        map_it = matched.find(it->first);
+        if(map_it==matched.end()){
+            it->second.hit_streak_ = 0;
+        }
+        if(it->second.hit_streak_>kMinHits){
+            it->second.state = 1;
+        }
         if (it->second.coast_cycles_ > kMaxCoastCycles) {
             it = tracks_.erase(it);
         } else {

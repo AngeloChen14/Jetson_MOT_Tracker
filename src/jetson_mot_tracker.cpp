@@ -23,7 +23,7 @@ MotTracker::MotTracker(ros::NodeHandle& nodeHandle)
   body_marker_publisher_ = nodeHandle_.advertise<visualization_msgs::MarkerArray>("body_tracking_data", 10);
   detection_publisher_ = nodeHandle_.advertise<geometry_msgs::PoseArray>("detection",10);
   // angle_pub_ = nodeHandle_.advertise<std_msgs::Float64>("/camera_angle", 100, true);
-  // timer1_ = nodeHandle_.createTimer(ros::Duration(0.1),&MotTracker::timer1Callback,this);  
+  timer1_ = nodeHandle_.createTimer(ros::Duration(0.05),&MotTracker::timer1Callback,this);  
 
   ROS_INFO("Successfully launched jetson mot tracker node.");
 }
@@ -47,15 +47,14 @@ void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
   // ROS_INFO_STREAM("detectCallback entered");
   vision_msgs::Detection2DArray msg_updated;
   std::vector<geometry_msgs::Point> detects;
-  double duration = (msg_raw.header.stamp - lastUpdateTime_).toSec();
+  // double duration = (msg_raw.header.stamp - lastUpdateTime_).toSec();
   // ROS_INFO_STREAM("Update duration is: "<<duration);
-  lastUpdateTime_ = msg_raw.header.stamp;
+  // lastUpdateTime_ = msg_raw.header.stamp;
 
   positionCalculator(msg_raw, msg_updated,depth_image_,cam_model_); //Update detections with 3D positions
   detects = detectPreprocessing(msg_updated);
-  trackers_.Run(detects,duration);
-  if(body_marker_publisher_.getNumSubscribers() > 0 && trackers_.GetTracks().size()>0)
-    bodyMarkerPublish(trackers_);
+
+  trackers_.Update(detects);
   // ROS_INFO_STREAM(detect_flag);
 }
 
@@ -127,6 +126,14 @@ bool MotTracker::positionCalculator(const vision_msgs::Detection2DArray& detects
   return detect_flag;
 }
 
+void MotTracker::timer1Callback(const ros::TimerEvent& e)
+{
+  double duration = (e.current_real -e.last_real).toSec();
+  trackers_.Predict(duration);
+  if(body_marker_publisher_.getNumSubscribers() > 0 && trackers_.GetTracks().size()>0)
+    bodyMarkerPublish(trackers_);
+}
+
 std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_msgs::Detection2DArray& detArray)
 {
   float kMinDistance = 0.2; //minimal distance between detections to avoid repeation
@@ -191,7 +198,7 @@ void MotTracker::bodyMarkerPublish(Tracker& trackers)
   visualization_msgs::Marker marker;
   for(auto& track:tracks)
   {
-    if(track.second.hit_streak_ > kMinHits)
+    if(track.second.state == 1)
     {
       marker.header.frame_id = detectGlobalFrame_;
       marker.header.stamp = ros::Time::now();

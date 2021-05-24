@@ -6,7 +6,6 @@
 #include "track.h"
 #include "munkres.h"
 // #include "utils.h"
-
 constexpr int kMaxCoastCycles = 10;
 constexpr int kMinHits = 3;
 constexpr float kMinConfidence = 0.6;
@@ -37,7 +36,8 @@ public:
                                        std::vector<geometry_msgs::Point>& unmatched_det,
                                        float distance_threshold = 1.0);
 
-    void Run(const std::vector<geometry_msgs::Point>& detections, double duration);
+    void Update(const std::vector<geometry_msgs::Point>& detections);
+    void Predict(double duration);
 
     std::map<int, Track> GetTracks();
 

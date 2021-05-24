@@ -27,9 +27,9 @@ Track::Track() : kf_(5, 3) {
             0, 0, 1, 0, 0;
 
     kf_.Q_ <<
-            0.1, 0,  0, 0, 0,
-            0, 0.1,  0, 0, 0,
-            0,  0, 0.1, 0, 0,
+            1.0, 0,  0, 0, 0,
+            0, 1.0,  0, 0, 0,
+            0,  0, 1.0, 0, 0,
             0,  0,  0, 1, 0,
             0,  0,  0, 0, 1;
 
@@ -46,9 +46,9 @@ void Track::Predict(double duration) {
     kf_.Predict(duration);
 
     // hit streak count will be reset
-    if (coast_cycles_ > 0) {
-        hit_streak_ = 0;
-    }
+    // if (coast_cycles_ > 0) {
+    //     hit_streak_ = 0;
+    // }
     // accumulate coast cycle count
     coast_cycles_++;
 }
