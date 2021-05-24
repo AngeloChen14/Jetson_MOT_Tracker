@@ -9,6 +9,7 @@
 constexpr int kMaxCoastCycles = 10;
 constexpr int kMinHits = 3;
 constexpr float kMinConfidence = 0.6;
+constexpr float kDistanThreshold = 0.5;
 
 class Tracker {
 public:
@@ -33,8 +34,7 @@ public:
     static void AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Point>& detections,
                                        std::map<int, Track>& tracks,
                                        std::map<int, geometry_msgs::Point>& matched,
-                                       std::vector<geometry_msgs::Point>& unmatched_det,
-                                       float distance_threshold = 1.0);
+                                       std::vector<geometry_msgs::Point>& unmatched_det);
 
     void Update(const std::vector<geometry_msgs::Point>& detections);
     void Predict(double duration);
