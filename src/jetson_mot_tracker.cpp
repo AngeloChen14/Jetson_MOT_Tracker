@@ -72,10 +72,18 @@ void MotTracker::caminfoCallback(const sensor_msgs::CameraInfo& message)
   // rgb_cam_info_ = message;
 }
 
+void MotTracker::timer1Callback(const ros::TimerEvent& e)
+{
+  double duration = (e.current_real -e.last_real).toSec();
+  trackers_.Predict(duration);
+  if(body_marker_publisher_.getNumSubscribers() > 0 && trackers_.GetTracks().size()>0)
+    bodyMarkerPublish(trackers_);
+}
 
 bool MotTracker::positionCalculator(const vision_msgs::Detection2DArray& detects,vision_msgs::Detection2DArray& detects_out,\
                                                      const sensor_msgs::Image& depthimage, image_geometry::PinholeCameraModel& cam_model)
 {
+  // ROS_INFO_STREAM("rgb and depth time diff is"<<(depthimage.header.stamp - detects.header.stamp).toSec());
   bool detect_flag =false;
   if(cam_model.initialized() && !depthimage.encoding.empty())
   {
@@ -126,13 +134,6 @@ bool MotTracker::positionCalculator(const vision_msgs::Detection2DArray& detects
   return detect_flag;
 }
 
-void MotTracker::timer1Callback(const ros::TimerEvent& e)
-{
-  double duration = (e.current_real -e.last_real).toSec();
-  trackers_.Predict(duration);
-  if(body_marker_publisher_.getNumSubscribers() > 0 && trackers_.GetTracks().size()>0)
-    bodyMarkerPublish(trackers_);
-}
 
 std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_msgs::Detection2DArray& detArray)
 {
@@ -142,7 +143,15 @@ std::vector<geometry_msgs::Point> MotTracker::detectPreprocessing(const vision_m
   geometry_msgs::TransformStamped transformStamped;
   geometry_msgs::PoseArray detection_msg;
   geometry_msgs::Pose    pos_msg;
-  transformStamped = buffer_.lookupTransform(detectGlobalFrame_, detArray.header.frame_id, ros::Time(0),ros::Duration(0.1));
+  try {
+     transformStamped = buffer_.lookupTransform(detectGlobalFrame_, detArray.header.frame_id, detArray.header.stamp,ros::Duration(0.1));
+  }
+  catch (tf2::TransformException &ex) 
+  {
+    ROS_WARN("Failure %s\n", ex.what()); //Print exception which was caught
+  }
+  
+  // ROS_INFO_STREAM("Transform duration is:"<<(transformStamped.header.stamp - detArray.header.stamp).toSec());
   for(auto& det:detArray.detections)
   {
     bool minDistanceFlag = true;

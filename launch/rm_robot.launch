@@ -1,9 +1,10 @@
 <launch>
 
   <include file="$(find azure_sensor_angle)/launch/azure_simulation.launch" />
-  <include file="$(find darknet_ros)/launch/darknet_ros_yolov3tiny.launch" >
+  <include file="$(find ros_deep_learning)/launch/detectnet.ros1.launch" />
+  <!-- <include file="$(find darknet_ros)/launch/darknet_ros_yolov3tiny.launch" >
     <arg name="image" value="/k4a/rgb/image_rect_color"/>
-  </include>
+  </include> -->
   <!-- Launch ROS Package Template Node -->
   <node pkg="jetson_mot_tracker" type="jetson_mot_tracker_node" name="jetson_mot_tracker" output="screen">
     <rosparam command="load" file="$(find jetson_mot_tracker)/config/kinect.yaml" />
@@ -11,7 +12,7 @@
 
   <node pkg="serial" type="serial_com_node" name="serial_com_node" output="screen"/>
 
-
+  
   <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jetson_mot_tracker)/rviz/view.rviz" output="screen"/> -->
 
 </launch>
