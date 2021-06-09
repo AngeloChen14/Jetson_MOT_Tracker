@@ -10,7 +10,7 @@
     <rosparam command="load" file="$(find jetson_mot_tracker)/config/kinect.yaml" />
   </node>
 
-  <node pkg="serial" type="serial_com_node" name="serial_com_node" output="screen"/>
+  <!-- <node pkg="serial" type="serial_com_node" name="serial_com_node" output="screen"/> -->
 
   
   <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find jetson_mot_tracker)/rviz/view.rviz" output="screen"/> -->
