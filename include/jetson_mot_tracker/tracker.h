@@ -6,7 +6,7 @@
 #include "track.h"
 #include "munkres.h"
 // #include "utils.h"
-constexpr int kMaxCoastCycles = 10;
+constexpr int kMaxCoastCycles = 20;
 constexpr int kMinHits = 3;
 constexpr float kMinConfidence = 0.6;
 constexpr float kDistanThreshold = 0.5;
