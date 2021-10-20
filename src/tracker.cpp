@@ -195,7 +195,7 @@ void Tracker::Update(const std::vector<geometry_msgs::Point>& detections) {
 
     std::map<int, geometry_msgs::Point>::iterator map_it;
     /*** Delete lose tracked tracks ***/
-    for (auto it = tracks_.begin(); it != tracks_.end();) {
+    for (auto it = tracks_.begin(); it != tracks_.end();it++) {
         map_it = matched.find(it->first);
         if(map_it==matched.end()){
             it->second.hit_streak_ = 0;
