@@ -207,7 +207,7 @@ void Tracker::Update(const std::vector<geometry_msgs::Point>& detections) {
         // if (it->second.coast_cycles_ > kMaxCoastCycles) {
         //     it = tracks_.erase(it);
         // } else {
-            it++;
+        //   it++;
         // }
     }   
 }
