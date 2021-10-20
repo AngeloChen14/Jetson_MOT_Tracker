@@ -1,7 +1,7 @@
 <launch>
 
   <include file="$(find azure_sensor_angle)/launch/azure_simulation.launch" />
-  <include file="$(find ros_deep_learning)/launch/detectnet.ros1.launch" />
+  <!-- <include file="$(find ros_deep_learning)/launch/detectnet.ros1.launch" /> -->
   <!-- <include file="$(find darknet_ros)/launch/darknet_ros_yolov3tiny.launch" >
     <arg name="image" value="/k4a/rgb/image_rect_color"/>
   </include> -->

@@ -2,7 +2,7 @@
 
 
 Tracker::Tracker() {
-    id_ = 0;
+    id_ = 1;
 }
 
 float Tracker::CalculateDistance(const geometry_msgs::Point& det, const Track& track) {
@@ -129,9 +129,18 @@ void Tracker::AssociateDetectionsToTrackers(const std::vector<geometry_msgs::Poi
 void Tracker::Predict(double duration) {
 
     /*** Predict internal tracks from previous frame ***/
-    for (auto &track : tracks_) {
-        track.second.Predict(duration);
+    // for (auto &track : tracks_) {
+    //     track.second.Predict(duration);
+    // }
+    for (auto it = tracks_.begin(); it != tracks_.end();) {
+        it->second.Predict(duration);
+        if (it->second.coast_cycles_ > kMaxCoastCycles) {
+            it = tracks_.erase(it);
+        } else {
+            it++;
+        }   
     }
+
 }
 
 
@@ -195,11 +204,11 @@ void Tracker::Update(const std::vector<geometry_msgs::Point>& detections) {
         if(it->second.hit_streak_>kMinHits){
             it->second.state = 1;
         }
-        if (it->second.coast_cycles_ > kMaxCoastCycles) {
-            it = tracks_.erase(it);
-        } else {
+        // if (it->second.coast_cycles_ > kMaxCoastCycles) {
+        //     it = tracks_.erase(it);
+        // } else {
             it++;
-        }
+        // }
     }   
 }
 

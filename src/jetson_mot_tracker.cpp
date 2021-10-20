@@ -44,6 +44,7 @@ bool MotTracker::readParameters()
 
 void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
 {
+  //ros::Time start_time=ros::Time::now();
   // ROS_INFO_STREAM("detectCallback entered");
   vision_msgs::Detection2DArray msg_updated;
   std::vector<geometry_msgs::Point> detects;
@@ -55,7 +56,7 @@ void MotTracker::detectCallback(const vision_msgs::Detection2DArray& msg_raw)
   detects = detectPreprocessing(msg_updated);
 
   trackers_.Update(detects);
-  // ROS_INFO_STREAM(detect_flag);
+  //ROS_INFO_STREAM("Track Duration is:"<<(ros::Time::now()-start_time).toNSec()<<"ns");
 }
 
 void MotTracker::depthCallback(const sensor_msgs::ImageConstPtr& msg)
@@ -215,7 +216,7 @@ void MotTracker::bodyMarkerPublish(Tracker& trackers)
       marker.lifetime = ros::Duration(0.25);
       marker.id = track.first * 100;
       marker.type  = visualization_msgs::Marker::SPHERE;
-      Color color = BODY_COLOR_PALETTE[track.first % BODY_COLOR_PALETTE.size()];
+      Color color = BODY_COLOR_PALETTE[(track.first) % BODY_COLOR_PALETTE.size()];
 
       marker.color.a = color.a;
       marker.color.r = color.r;
@@ -229,6 +230,22 @@ void MotTracker::bodyMarkerPublish(Tracker& trackers)
       marker.pose.position = track.second.GetStateAsPoint();
       marker.pose.orientation.w = 1.0f;
       marker.points.push_back(track.second.GetVelAsPoint());
+      markerArray.markers.push_back(marker);
+      
+      marker.id = track.first;
+      marker.type  = visualization_msgs::Marker::TEXT_VIEW_FACING;
+
+      marker.color.a = 1.0;
+      marker.color.r = 1.0;
+      marker.color.g = 1.0;
+      marker.color.b = 1.0;
+
+      marker.scale.x = 0.5;
+      marker.scale.y = 0.5;
+      marker.scale.z = 0.5;
+      marker.pose.position.z += 0.5f;
+      marker.text = std::to_string(track.first);
+      
       markerArray.markers.push_back(marker);
     }
   }
